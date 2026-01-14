@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Free Slot Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Free Slot Game</h1>
+    <p class="note">For fun only. Coins have no real value.</p>
+
+    <div class="balance-box">
+      Balance: <span id="balance">0</span> coins
+    </div>
+
+    <div class="reels" id="reels">
+      <div class="reel" id="reel1">?</div>
+      <div class="reel" id="reel2">?</div>
+      <div class="reel" id="reel3">?</div>
+    </div>
+
+    <div class="controls">
+      <label>
+        Bet:
+        <input type="number" id="bet-input" value="10" min="1" />
+      </label>
+      <button id="spin-btn">Spin</button>
+    </div>
+
+    <p id="message"></p>
+
+    <footer>
+      <small>
+        This is a free-to-play demo. No real money, no prizes, just for fun.
+      </small>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #222;
+  padding: 20px 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.note {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.balance-box {
+  margin: 15px 0;
+  font-size: 1.1rem;
+}
+
+.reels {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.reel {
+  background: #000;
+  padding: 20px;
+  margin: 0 5px;
+  font-size: 2rem;
+  border-radius: 5px;
+  width: 60px;
+  text-align: center;
+}
+
+.controls {
+  margin: 15px 0;
+}
+
+#bet-input {
+  width: 80px;
+  margin-left: 5px;
+}
+
+button {
+  margin-left: 10px;
+  padding: 5px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+#message {
+  min-height: 20px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+// Simple free-play slot game
+
+const symbols = ["🍒", "🍋", "⭐", "7️⃣", "🍀"];
+
+const payouts = {
+  "7️⃣,7️⃣,7️⃣": 50,  // 50x bet
+  "⭐,⭐,⭐": 20,      // 20x bet
+  "🍒,🍒,🍒": 10     // 10x bet
+};
+
+const balanceEl = document.getElementById("balance");
+const reel1El = document.getElementById("reel1");
+const reel2El = document.getElementById("reel2");
+const reel3El = document.getElementById("reel3");
+const betInput = document.getElementById("bet-input");
+const spinBtn = document.getElementById("spin-btn");
+const messageEl = document.getElementById("message");
+
+// Load balance from localStorage or start with 1000
+let balance = parseInt(localStorage.getItem("slotBalance") || "1000", 10);
+
+function saveBalance() {
+  localStorage.setItem("slotBalance", balance.toString());
+}
+
+function updateBalanceDisplay() {
+  balanceEl.textContent = balance;
+}
+
+function spinReel() {
+  const index = Math.floor(Math.random() * symbols.length);
+  return symbols[index];
+}
+
+function spinSlots(betAmount) {
+  const r1 = spinReel();
+  const r2 = spinReel();
+  const r3 = spinReel();
+
+  const comboKey = `${r1},${r2},${r3}`;
+  let multiplier = 0;
+
+  if (payouts[comboKey]) {
+    multiplier = payouts[comboKey];
+  } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+    // any 2 matching
+    multiplier = 2;
+  }
+
+  const winAmount = betAmount * multiplier;
+
+  return {
+    reels: [r1, r2, r3],
+    winAmount
+  };
+}
+
+spinBtn.addEventListener("click", () => {
+  messageEl.textContent = "";
+
+  const bet = parseInt(betInput.value, 10);
+
+  if (isNaN(bet) || bet <= 0) {
+    messageEl.textContent = "Enter a valid bet.";
+    return;
+  }
+
+  if (bet > balance) {
+    messageEl.textContent = "Not enough coins!";
+    return;
+  }
+
+  // Take bet
+  balance -= bet;
+
+  const result = spinSlots(bet);
+
+  // Show reels
+  reel1El.textContent = result.reels[0];
+  reel2El.textContent = result.reels[1];
+  reel3El.textContent = result.reels[2];
+
+  // Add winnings
+  balance += result.winAmount;
+
+  updateBalanceDisplay();
+  saveBalance();
+
+  if (result.winAmount > 0) {
+    messageEl.textContent = `You won ${result.winAmount} coins!`;
+  } else {
+    messageEl.textContent = "No win this time.";
+  }
+});
+
+// Initialize display
+updateBalanceDisplay();
+// ===== SHARED CARD / DECK LOGIC =====
+
+const SUITS = ["♠", "♥", "♦", "♣"];
+const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K", "A"];
+
+function createDeck() {
+  const deck = [];
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      deck.push({ rank, suit });
+    }
+  }
+  return deck;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+class Deck {
+  constructor() {
+    this.cards = createDeck();
+    shuffle(this.cards);
+  }
+
+  deal() {
+    if (this.cards.length === 0) {
+      this.cards = createDeck();
+      shuffle(this.cards);
+    }
+    return this.cards.pop();
+  }
+}
+// ===== BLACKJACK GAME =====
+
+function blackjackCardValue(card) {
+  if (typeof card.rank === "number") return card.rank;
+  if (card.rank === "A") return 11; // handle Aces later
+  return 10; // J, Q, K
+}
+
+function handValue(hand) {
+  let total = 0;
+  let aces = 0;
+
+  for (const card of hand) {
+    total += blackjackCardValue(card);
+    if (card.rank === "A") aces++;
+  }
+
+  // If bust and we have Aces, downgrade them from 11 to 1
+  while (total > 21 && aces > 0) {
+    total -= 10;
+    aces--;
+  }
+
+  return total;
+}
+
+class BlackjackPlayer {
+  constructor(name, isHuman = false, isDealer = false) {
+    this.name = name;
+    this.isHuman = isHuman;
+    this.isDealer = isDealer;
+    this.hand = [];
+    this.standing = false;
+    this.busted = false;
+  }
+
+  reset() {
+    this.hand = [];
+    this.standing = false;
+    this.busted = false;
+  }
+
+  get value() {
+    return handValue(this.hand);
+  }
+}
+
+class BlackjackGame {
+  constructor(numAI = 1) {
+    this.deck = new Deck();
+    this.players = [];
+    this.dealer = new BlackjackPlayer("Dealer", false, true);
+
+    // Human player
+    this.players.push(new BlackjackPlayer("You", true, false));
+
+    // AI players
+    for (let i = 0; i < numAI; i++) {
+      this.players.push(new BlackjackPlayer("AI " + (i + 1), false, false));
+    }
+
+    this.currentPlayerIndex = 0; // you start
+    this.roundOver = false;
+  }
+
+  startRound() {
+    this.roundOver = false;
+    this.deck = new Deck();
+
+    for (const p of this.players) p.reset();
+    this.dealer.reset();
+
+    // Deal 2 cards to everyone
+    for (let i = 0; i < 2; i++) {
+      for (const p of this.players) {
+        p.hand.push(this.deck.deal());
+      }
+      this.dealer.hand.push(this.deck.deal());
+    }
+
+    this.currentPlayerIndex = 0; // start with you
+  }
+
+  getCurrentPlayer() {
+    return this.players[this.currentPlayerIndex];
+  }
+
+  hit(player) {
+    if (this.roundOver) return;
+    player.hand.push(this.deck.deal());
+    if (player.value > 21) {
+      player.busted = true;
+      player.standing = true;
+    }
+  }
+
+  stand(player) {
+    player.standing = true;
+  }
+
+  // Simple AI strategy: hit until 16, then stand
+  runAIForPlayer(player) {
+    while (!player.standing && !player.busted) {
+      if (player.value < 16) {
+        this.hit(player);
+      } else {
+        this.stand(player);
+      }
+    }
+  }
+
+  nextTurn() {
+    if (this.roundOver) return;
+
+    // Move to next player who is not standing/busted
+    do {
+      this.currentPlayerIndex++;
+    } while (
+      this.currentPlayerIndex < this.players.length &&
+      (this.players[this.currentPlayerIndex].standing ||
+        this.players[this.currentPlayerIndex].busted)
+    );
+
+    // If no more players, dealer plays
+    if (this.currentPlayerIndex >= this.players.length) {
+      this.dealerPlay();
+      this.roundOver = true;
+      return "dealer";
+    }
+
+    const current = this.getCurrentPlayer();
+    if (!current.isHuman) {
+      // AI auto-plays
+      this.runAIForPlayer(current);
+      return this.nextTurn(); // then move on again
+    }
+
+    return "human";
+  }
+
+  dealerPlay() {
+    // Dealer hits until 17 or more
+    while (this.dealer.value < 17) {
+      this.dealer.hand.push(this.deck.deal());
+    }
+    if (this.dealer.value > 21) {
+      this.dealer.busted = true;
+    }
+  }
+
+  getResults() {
+    const dealerVal = this.dealer.value;
+    const dealerBust = dealerVal > 21;
+
+    const results = [];
+
+    for (const p of this.players) {
+      if (p.busted) {
+        results.push({ player: p.name, result: "bust", value: p.value });
+      } else if (dealerBust) {
+        results.push({ player: p.name, result: "win", value: p.value });
+      } else if (p.value > dealerVal) {
+        results.push({ player: p.name, result: "win", value: p.value });
+      } else if (p.value < dealerVal) {
+        results.push({ player: p.name, result: "lose", value: p.value });
+      } else {
+        results.push({ player: p.name, result: "push", value: p.value });
+      }
+    }
+
+    return {
+      dealerValue: dealerVal,
+      dealerBust,
+      results
+    };
+  }
+}
+// Example usage:
+const bjGame = new BlackjackGame(2); // you + 2 AI players
+bjGame.startRound();
+
+// When your "Hit" button clicked:
+function onHit() {
+  const current = bjGame.getCurrentPlayer();
+  if (!current.isHuman) return;
+  bjGame.hit(current);
+
+  if (current.busted || current.standing) {
+    bjGame.nextTurn(); // move to next player / dealer
+  }
+
+  // then redraw UI from bjGame.players and bjGame.dealer
+}
+
+// When your "Stand" button clicked:
+function onStand() {
+  const current = bjGame.getCurrentPlayer();
+  if (!current.isHuman) return;
+  bjGame.stand(current);
+  bjGame.nextTurn();
+
+  // redraw UI
+}
+
+// When round is over, you can show:
+if (bjGame.roundOver) {
+  console.log(bjGame.getResults());
+}
+// ===== SIMPLE 5-CARD POKER GAME =====
+
+// Convert rank to numeric for comparison
+function rankToValue(rank) {
+  if (typeof rank === "number") return rank;
+  if (rank === "J") return 11;
+  if (rank === "Q") return 12;
+  if (rank === "K") return 13;
+  if (rank === "A") return 14;
+  return 0;
+}
+
+// Evaluate a 5-card hand (very simplified)
+function evaluatePokerHand(cards) {
+  // cards: array of {rank, suit}
+  const counts = {};
+  const values = [];
+
+  for (const c of cards) {
+    const v = rankToValue(c.rank);
+    values.push(v);
+    counts[v] = (counts[v] || 0) + 1;
+  }
+
+  values.sort((a, b) => b - a); // high to low
+
+  const freq = Object.entries(counts).map(([v, count]) => ({
+    value: parseInt(v, 10),
+    count
+  }));
+
+  freq.sort((a, b) => {
+    if (b.count === a.count) return b.value - a.value;
+    return b.count - a.count;
+  });
+
+  // freq[0] is highest count
+  const main = freq[0];
+  const second = freq[1] || null;
+
+  let rankCategory = 0; // 0 = high card, 1 = pair, 2 = two pair, 3 = trips, 4 = full house, 5 = four-kind
+
+  if (main.count === 4) {
+    rankCategory = 5;
+  } else if (main.count === 3 && second && second.count === 2) {
+    rankCategory = 4;
+  } else if (main.count === 3) {
+    rankCategory = 3;
+  } else if (main.count === 2 && second && second.count === 2) {
+    rankCategory = 2;
+  } else if (main.count === 2) {
+    rankCategory = 1;
+  } else {
+    rankCategory = 0;
+  }
+
+  // Tiebreak info: sorted counts + remaining high cards
+  // This isn’t perfect poker logic but good enough for a small game.
+  const sortedByCountThenValue = freq.map(f => f.value);
+  const kickerValues = values.filter(
+    v => !sortedByCountThenValue.includes(v) || counts[v] === 1
+  );
+
+  return {
+    category: rankCategory,
+    mainValue: main.value,
+    secondValue: second ? second.value : 0,
+    kickers: kickerValues.sort((a, b) => b - a),
+    rawValues: values
+  };
+}
+
+// Compare two evaluated hands
+function compareHands(a, b) {
+  if (a.category !== b.category) return a.category - b.category;
+
+  if (a.mainValue !== b.mainValue) return a.mainValue - b.mainValue;
+
+  if (a.secondValue !== b.secondValue) return a.secondValue - b.secondValue;
+
+  // Compare kickers
+  const len = Math.max(a.kickers.length, b.kickers.length);
+  for (let i = 0; i < len; i++) {
+    const av = a.kickers[i] || 0;
+    const bv = b.kickers[i] || 0;
+    if (av !== bv) return av - bv;
+  }
+
+  return 0; // exact tie
+}
+
+class PokerPlayer {
+  constructor(name, isHuman = false) {
+    this.name = name;
+    this.isHuman = isHuman;
+    this.cards = [];
+    this.folded = false;
+  }
+
+  reset() {
+    this.cards = [];
+    this.folded = false;
+  }
+}
+
+class SimplePokerGame {
+  constructor(numAI = 3) {
+    this.deck = new Deck();
+    this.players = [];
+    this.pot = 0;
+
+    this.players.push(new PokerPlayer("You", true));
+
+    for (let i = 0; i < numAI; i++) {
+      this.players.push(new PokerPlayer("AI " + (i + 1), false));
+    }
+  }
+
+  startRound() {
+    this.deck = new Deck();
+    this.pot = 0;
+    for (const p of this.players) p.reset();
+
+    // Deal 5 cards each
+    for (let i = 0; i < 5; i++) {
+      for (const p of this.players) {
+        p.cards.push(this.deck.deal());
+      }
+    }
+
+    // Simple "AI decision" to fold or stay based on hand strength
+    for (const p of this.players) {
+      if (p.isHuman) continue;
+      const evalHand = evaluatePokerHand(p.cards);
+
+      // AI rule: fold weak high card hands
+      if (evalHand.category === 0 && evalHand.rawValues[0] < 11) {
+        p.folded = true;
+      }
+    }
+  }
+
+  showdown() {
+    // Return winner(s) and their hands
+    let bestEval = null;
+    let winners = [];
+
+    for (const p of this.players) {
+      if (p.folded) continue;
+      const e = evaluatePokerHand(p.cards);
+      if (!bestEval) {
+        bestEval = e;
+        winners = [p];
+      } else {
+        const cmp = compareHands(e, bestEval);
+        if (cmp > 0) {
+          bestEval = e;
+          winners = [p];
+        } else if (cmp === 0) {
+          winners.push(p);
+        }
+      }
+    }
+
+    return {
+      winners,
+      bestEval
+    };
+  }
+}
+const pokerGame = new SimplePokerGame(3); // you + 3 AI
+
+// Start a round
+pokerGame.startRound();
+
+// Show your cards:
+console.log("Your hand:", pokerGame.players[0].cards);
+
+// Show which AIs folded:
+pokerGame.players.forEach(p => {
+  if (!p.isHuman) {
+    console.log(p.name, "folded?", p.folded);
+  }
+});
+
+// When you click "Showdown" button:
+function onShowdown() {
+  const result = pokerGame.showdown();
+  console.log("Winners:", result.winners.map(w => w.name));
+  for (const p of pokerGame.players) {
+    if (!p.folded) {
+      console.log(p.name, p.cards);
+    } else {
+      console.log(p.name, "(folded)");
+    }
+  }
+}
