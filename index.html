@@ -1,0 +1,43 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Free Slot Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Free Slot Game</h1>
+    <p class="note">For fun only. Coins have no real value.</p>
+
+    <div class="balance-box">
+      Balance: <span id="balance">0</span> coins
+    </div>
+
+    <div class="reels" id="reels">
+      <div class="reel" id="reel1">?</div>
+      <div class="reel" id="reel2">?</div>
+      <div class="reel" id="reel3">?</div>
+    </div>
+
+    <div class="controls">
+      <label>
+        Bet:
+        <input type="number" id="bet-input" value="10" min="1" />
+      </label>
+      <button id="spin-btn">Spin</button>
+    </div>
+
+    <p id="message"></p>
+
+    <footer>
+      <small>
+        This is a free-to-play demo. No real money, no prizes, just for fun.
+      </small>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
