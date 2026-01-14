@@ -1,0 +1,77 @@
+style.css
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #222;
+  padding: 20px 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.note {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.balance-box {
+  margin: 15px 0;
+  font-size: 1.1rem;
+}
+
+.reels {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.reel {
+  background: #000;
+  padding: 20px;
+  margin: 0 5px;
+  font-size: 2rem;
+  border-radius: 5px;
+  width: 60px;
+  text-align: center;
+}
+
+.controls {
+  margin: 15px 0;
+}
+
+#bet-input {
+  width: 80px;
+  margin-left: 5px;
+}
+
+button {
+  margin-left: 10px;
+  padding: 5px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+#message {
+  min-height: 20px;
+  margin-top: 10px;
+  font-weight: bold;
+}
